@@ -6,7 +6,7 @@ namespace Omnipay\WechatPay;
  * Class MwebGateway
  * @package Omnipay\WechatPay
  */
-class MwebGateway extends BaseAbstractGateway
+class WapGateway extends BaseAbstractGateway
 {
     public function getName()
     {
