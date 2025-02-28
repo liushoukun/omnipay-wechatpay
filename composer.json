@@ -1,5 +1,5 @@
 {
-  "name": "lokielse/omnipay-wechatpay",
+  "name": "liushoukun/omnipay-wechatpay",
   "type": "library",
   "description": "Wechat gateway for Omnipay payment processing library",
   "keywords": [
@@ -28,11 +28,13 @@
     }
   },
   "require": {
-    "omnipay/common": "^3.0",
-    "php-http/guzzle6-adapter": "*"
+    "ext-bcmath": "*",
+    "ext-json": "*",
+    "ext-openssl": "*",
+    "league/omnipay": "^3",
+    "omnipay/paypal": "^3.0"
   },
   "require-dev": {
-    "omnipay/tests": "^3.0",
-    "squizlabs/php_codesniffer": "3.*"
+    "squizlabs/php_codesniffer": "^3.4"
   }
 }
