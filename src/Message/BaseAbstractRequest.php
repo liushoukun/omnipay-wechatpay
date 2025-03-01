@@ -11,9 +11,9 @@ use Omnipay\Common\Message\AbstractRequest;
 abstract class BaseAbstractRequest extends AbstractRequest
 {
 
-    protected $endpoint = 'https://api.mch.weixin.qq.com';
+    protected string $endpoint = 'https://api.mch.weixin.qq.com';
 
-    protected $method;
+    protected string $method;
 
 
 

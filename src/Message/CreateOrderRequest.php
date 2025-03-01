@@ -14,7 +14,6 @@ use Omnipay\WechatPay\Helper;
  */
 class CreateOrderRequest extends BaseAbstractRequest
 {
-    protected $endpoint = 'https://api.mch.weixin.qq.com/pay/unifiedorder';
 
 
     /**
@@ -62,7 +61,7 @@ class CreateOrderRequest extends BaseAbstractRequest
             'trade_type'       => $this->getTradeType(), //*
             'limit_pay'        => $this->getLimitPay(),
             'openid'           => $this->getOpenId(),//*(trade_type=JSAPI)
-            'nonce_str'        => md5(uniqid()),//*
+            'nonce_str'        => md5(uniqid('', true)),//*
         );
 
         $data = array_filter($data);
@@ -351,6 +350,7 @@ class CreateOrderRequest extends BaseAbstractRequest
      */
     public function sendData($data)
     {
+        // TODO 根据类型 选择不同的接口
         $body     = Helper::array2xml($data);
         $response = $this->httpClient->request('POST', $this->endpoint, [], $body)->getBody();
         $payload  = Helper::xml2array($response);
