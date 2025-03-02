@@ -24,17 +24,61 @@ abstract class BaseAbstractGateway extends AbstractGateway
     }
 
 
-    public function setApiKey($apiKey)
+
+    /**
+     * @return mixed
+     */
+    public function getPrivateKey()
     {
-        $this->setParameter('api_key', $apiKey);
+        return $this->getParameter('private_key');
     }
 
 
-    public function getApiKey()
+    /**
+     * @param $value
+     *
+     * @return $this
+     */
+    public function setPrivateKey($value)
     {
-        return $this->getParameter('api_key');
+        return $this->setParameter('private_key', $value);
     }
 
+    public function getAppCert()
+    {
+        return $this->getParameter('app_cert');
+    }
+
+
+    /**
+     * @param $value
+     *
+     * @return $this
+     */
+    public function setAppCert($value)
+    {
+        return $this->setParameter('app_cert', $value);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getWechatPublicKey()
+    {
+        return $this->getParameter('wechat_public_key');
+    }
+
+
+    /**
+     * @param $value
+     *
+     * @return $this
+     */
+    public function setWechatPublicKey($value)
+    {
+
+          return $this->setParameter('wechat_public_key', $value);
+    }
 
     public function setMchId($mchId)
     {
@@ -46,6 +90,21 @@ abstract class BaseAbstractGateway extends AbstractGateway
     {
         return $this->getParameter('mch_id');
     }
+
+
+
+
+    public function setApiKey($apiKey)
+    {
+        $this->setParameter('api_key', $apiKey);
+    }
+
+
+    public function getApiKey()
+    {
+        return $this->getParameter('api_key');
+    }
+
 
     /**
      * 子商户id

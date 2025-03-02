@@ -24,30 +24,32 @@ class CreateOrderRequest extends BaseAbstractRequest
      */
     public function getData()
     {
+
+
         $this->validate(
             'app_id',
             'mch_id',
-            'body',
             'out_trade_no',
-            'total_fee',
+            'amount',
             'notify_url',
-            'trade_type',
-            'spbill_create_ip'
+            'trade_type'
         );
 
         $tradeType = strtoupper($this->getTradeType());
 
+
         if ($tradeType == 'JSAPI') {
-            $this->validate('open_id');
+            $this->validate('payer');
         }
 
+        // 转换下单参数
         $data = array(
             'appid'            => $this->getAppId(),//*
             'mch_id'           => $this->getMchId(),
             'sub_appid'        => $this->getSubAppId(),
             'sub_mch_id'       => $this->getSubMchId(),
             'device_info'      => $this->getDeviceInfo(),//*
-            'body'             => $this->getBody(),//*
+
             'detail'           => $this->getDetail(),
             'attach'           => $this->getAttach(),
             'out_trade_no'     => $this->getOutTradeNo(),//*
@@ -63,7 +65,7 @@ class CreateOrderRequest extends BaseAbstractRequest
             'openid'           => $this->getOpenId(),//*(trade_type=JSAPI)
             'nonce_str'        => md5(uniqid('', true)),//*
         );
-
+        dd($this->getParameters());
         $data = array_filter($data);
 
         $data['sign'] = Helper::sign($data, $this->getApiKey());
@@ -142,6 +144,8 @@ class CreateOrderRequest extends BaseAbstractRequest
     {
         return $this->getParameter('total_fee');
     }
+
+
 
 
     /**
@@ -232,6 +236,20 @@ class CreateOrderRequest extends BaseAbstractRequest
     {
         $this->setParameter('detail', $detail);
     }
+    public function setPayer($payer)
+    {
+        $this->setParameter('payer', $payer);
+    }
+
+
+    /**
+     * @param mixed $detail
+     */
+    public function getPayer($payer)
+    {
+        $this->setParameter('payer', $payer);
+    }
+
 
 
     /**
