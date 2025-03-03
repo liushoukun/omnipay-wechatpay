@@ -52,9 +52,8 @@ class CreateOrderRequest extends BaseAbstractRequest
 
         $tradeType = strtoupper($this->getTradeType());
 
-
+        $this->uri = $this->uriList[$tradeType];
         if ($tradeType == 'JSAPI') {
-            $this->uri = $this->uriList[$tradeType];
             $this->validate('payer');
         }
 
@@ -76,13 +75,14 @@ class CreateOrderRequest extends BaseAbstractRequest
             ],
             'payer'        => $this->getPayer(),
             'detail'       => null,
-            'scene_info'   => null,
+            'scene_info'   => $this->getSceneInfo(),
             'settle_info'  => [
                 'profit_sharing' => false,
             ],
             'goods_tag'    => $this->getGoodsTag(),
             'notify_url'   => $this->getNotifyUrl(), //*
         );
+
 
         return array_filter($data);
 
@@ -122,6 +122,17 @@ class CreateOrderRequest extends BaseAbstractRequest
     public function getDetail()
     {
         return $this->getParameter('detail');
+    }
+
+
+    public function getSceneInfo()
+    {
+        return $this->getParameter('scene_info');
+    }
+
+    public function setSceneInfo($sceneInfo)
+    {
+        return $this->setParameter('scene_info', $sceneInfo);
     }
 
 
@@ -386,7 +397,7 @@ class CreateOrderRequest extends BaseAbstractRequest
         ];
 
 
-        $body                     = json_encode($data);
+        $body                     = json_encode($data, JSON_THROW_ON_ERROR);
         $authorization            = Signer::signer(
             $this->getMchId(),
             $this->getAppCert(),
@@ -404,7 +415,11 @@ class CreateOrderRequest extends BaseAbstractRequest
             $headers, $body);
 
 
-        $payload = json_decode($response->getBody()->getContents(),true);
+        $contents = json_decode($response->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
+
+        $payload['data']        = $contents;
+        $payload['status_code'] = $response->getStatusCode();
+
 
         return $this->response = new CreateOrderResponse($this, $payload);
     }

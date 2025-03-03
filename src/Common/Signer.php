@@ -27,6 +27,31 @@ class Signer
 
     }
 
+    /**
+     * @param  string  $appId
+     * @param  string  $privateKey
+     * @param  string  $prepayId
+     *
+     * @return array{nonce:string,timestamp:string,signature:string}
+     */
+    public static function orderSigner(string $appId, string $privateKey, string $prepayId) : array
+    {
+
+        $nonce     = static::nonce();
+        $timestamp = (string) static::timestamp();
+
+
+        $signature = Rsa::sign(
+            static::joinedByLineFeed($appId, $timestamp, $nonce, $prepayId)
+            , static::format($privateKey, static::KEY_TYPE_PRIVATE));
+
+        return [
+            'nonce'     => $nonce,
+            'timestamp' => $timestamp,
+            'signature' => $signature
+        ];
+    }
+
     public static function signer(
         string $merchantId,
         string $cert,

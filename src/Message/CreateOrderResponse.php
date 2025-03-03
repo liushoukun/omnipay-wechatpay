@@ -2,6 +2,7 @@
 
 namespace Omnipay\WechatPay\Message;
 
+use Omnipay\WechatPay\Common\Signer;
 use Omnipay\WechatPay\Helper;
 
 /**
@@ -21,18 +22,24 @@ class CreateOrderResponse extends BaseAbstractResponse
 
     public function getAppOrderData()
     {
-        // TODO 修改
-        if ($this->isSuccessful()) {
-            $data = [
-                'appid'     => $this->request->getAppId(),
-                'partnerid' => $this->request->getMchId(),
-                'prepayid'  => $this->getPrepayId(),
-                'package'   => 'Sign=WXPay',
-                'noncestr'  => md5(uniqid()),
-                'timestamp' => time(),
-            ];
 
-            $data['sign'] = Helper::sign($data, $this->request->getApiKey());
+        if ($this->isSuccessful()) {
+            $data              = [
+                'appId'        => $this->request->getAppId(),
+                'partnerId'    => $this->request->getMchId(),
+                'prepayId'     => $this->getPrepayId(),
+                'packageValue' => 'Sign=WXPay',
+            ];
+            $orderSigner       = Signer::orderSigner(
+                $this->request->getAppId(),
+                $this->request->getPrivateKey(),
+                $this->getPrepayId(),
+
+            );
+            $data['timeStamp'] = $orderSigner['timestamp'];
+            $data['nonceStr']  = $orderSigner['nonce'];
+            $data['sign']      = $orderSigner['signature'];
+
         } else {
             $data = null;
         }
@@ -46,26 +53,32 @@ class CreateOrderResponse extends BaseAbstractResponse
         if ($this->isSuccessful()) {
             $data = $this->getData();
 
-            return $data['prepay_id'];
+            return $data['data']['prepay_id'];
         } else {
             return null;
         }
     }
 
 
-    public function getJsOrderData()
+    public function getJsOrderData() : ?array
     {
-        // TODO 修改
-        if ($this->isSuccessful()) {
-            $data = [
-                'appId'     => $this->request->getAppId(),
-                'package'   => 'prepay_id=' . $this->getPrepayId(),
-                'nonceStr'  => md5(uniqid()),
-                'timeStamp' => time() . '',
-            ];
 
-            $data['signType'] = 'MD5';
-            $data['paySign']  = Helper::sign($data, $this->request->getApiKey());
+        if ($this->isSuccessful()) {
+            $data              = [
+                'appId'   => $this->request->getAppId(),
+                'package' => 'prepay_id='.$this->getPrepayId(),
+
+            ];
+            $orderSigner       = Signer::orderSigner(
+                $this->request->getAppId(),
+                $this->request->getPrivateKey(),
+                $this->getPrepayId(),
+
+            );
+            $data['signType']  = 'RSA';
+            $data['paySign']   = $orderSigner['signature'];
+            $data['timeStamp'] = $orderSigner['timestamp'];
+            $data['nonceStr']  = $orderSigner['nonce'];
         } else {
             $data = null;
         }
@@ -79,20 +92,20 @@ class CreateOrderResponse extends BaseAbstractResponse
         if ($this->isSuccessful() && $this->request->getTradeType() == 'NATIVE') {
             $data = $this->getData();
 
-            return $data['code_url'];
+            return $data['data']['code_url'];
         } else {
             return null;
         }
     }
 
 
-    public function getMwebUrl()
+    public function getWapUrl()
     {
         // 外部 H5 发起支付
-        if ($this->isSuccessful() && $this->request->getTradeType() == 'MWEB') {
+        if ($this->isSuccessful() && $this->request->getTradeType() == 'WAP') {
             $data = $this->getData();
 
-            return $data['mweb_url'];
+            return $data['data']['h5_url'];
         } else {
             return null;
         }

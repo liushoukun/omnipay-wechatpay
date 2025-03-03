@@ -16,11 +16,11 @@ abstract class BaseAbstractResponse extends AbstractResponse
      *
      * @return boolean
      */
-    public function isSuccessful()
+    public function isSuccessful() : bool
     {
-        // TODO 状态码 为 200
+
         $data = $this->getData();
 
-        return isset($data['result_code']) && $data['result_code'] == 'SUCCESS';
+        return isset($data['status_code']) && $data['status_code'] === 200;
     }
 }
