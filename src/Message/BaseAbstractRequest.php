@@ -13,9 +13,9 @@ abstract class BaseAbstractRequest extends AbstractRequest
 
     protected string $endpoint = 'https://api.mch.weixin.qq.com';
 
-    protected string $method;
+    protected string $method = 'POST';
 
-
+    protected string $uri;
 
 
     /**
@@ -28,13 +28,52 @@ abstract class BaseAbstractRequest extends AbstractRequest
 
 
     /**
-     * @param mixed $appId
+     * @param  mixed  $appId
      */
     public function setAppId($appId)
     {
         $this->setParameter('app_id', $appId);
     }
 
+    public function getAppCert()
+    {
+        return $this->getParameter('app_cert');
+    }
+
+    public function setAppCert($appCert)
+    {
+        $this->setParameter('app_cert', $appCert);
+    }
+
+
+    public function getAppCertSn()
+    {
+        return $this->getParameter('app_cert_sn');
+    }
+
+    public function setAppCertSn($appCertSn)
+    {
+        $this->setParameter('app_cert_sn', $appCertSn);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPrivateKey()
+    {
+        return $this->getParameter('private_key');
+    }
+
+
+    /**
+     * @param $privateKey
+     *
+     * @return $this
+     */
+    public function setPrivateKey($privateKey)
+    {
+        return $this->setParameter('private_key', $privateKey);
+    }
 
     /**
      * @return mixed
@@ -46,7 +85,7 @@ abstract class BaseAbstractRequest extends AbstractRequest
 
 
     /**
-     * @param mixed $apiKey
+     * @param  mixed  $apiKey
      */
     public function setApiKey($apiKey)
     {
@@ -64,7 +103,7 @@ abstract class BaseAbstractRequest extends AbstractRequest
 
 
     /**
-     * @param mixed $mchId
+     * @param  mixed  $mchId
      */
     public function setMchId($mchId)
     {
@@ -81,7 +120,7 @@ abstract class BaseAbstractRequest extends AbstractRequest
 
 
     /**
-     * @param mixed $subMchId
+     * @param  mixed  $subMchId
      */
     public function setSubMchId($mchId)
     {
@@ -100,7 +139,7 @@ abstract class BaseAbstractRequest extends AbstractRequest
 
 
     /**
-     * @param mixed $subAppId
+     * @param  mixed  $subAppId
      */
     public function setSubAppId($subAppId)
     {

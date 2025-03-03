@@ -3,7 +3,10 @@
 namespace Omnipay\WechatPay\Message;
 
 use Omnipay\Common\Message\ResponseInterface;
+use Omnipay\WechatPay\Common\Signer;
 use Omnipay\WechatPay\Helper;
+use Psr\Http\Client\Exception\NetworkException;
+use Psr\Http\Client\Exception\RequestException;
 
 /**
  * Class CreateOrderRequest
@@ -14,6 +17,18 @@ use Omnipay\WechatPay\Helper;
  */
 class CreateOrderRequest extends BaseAbstractRequest
 {
+
+    const string JSAPI  = 'JSAPI';
+    const string WAP    = 'WAP';
+    const string NATIVE = 'WEB';
+    const string APP    = 'APP';
+
+    protected array $uriList = [
+        self::JSAPI  => '/v3/pay/transactions/jsapi',
+        self::WAP    => '/v3/pay/transactions/h5',
+        self::NATIVE => '/v3/pay/transactions/native',
+        self::APP    => '/v3/pay/transactions/app',
+    ];
 
 
     /**
@@ -39,38 +54,38 @@ class CreateOrderRequest extends BaseAbstractRequest
 
 
         if ($tradeType == 'JSAPI') {
+            $this->uri = $this->uriList[$tradeType];
             $this->validate('payer');
         }
 
         // 转换下单参数
-        $data = array(
-            'appid'            => $this->getAppId(),//*
-            'mch_id'           => $this->getMchId(),
-            'sub_appid'        => $this->getSubAppId(),
-            'sub_mch_id'       => $this->getSubMchId(),
-            'device_info'      => $this->getDeviceInfo(),//*
+        $data = array (
+            'appid'       => $this->getAppId(),//*
+            'mchid'       => $this->getMchId(),
+            'sub_appid'   => $this->getSubAppId(),
+            'sub_mch_id'  => $this->getSubMchId(),
+            'device_info' => $this->getDeviceInfo(),//*
+            'time_expire' => $this->getTimeExpire(),//*
 
-            'detail'           => $this->getDetail(),
-            'attach'           => $this->getAttach(),
-            'out_trade_no'     => $this->getOutTradeNo(),//*
-            'fee_type'         => $this->getFeeType(),
-            'total_fee'        => $this->getTotalFee(),//*
-            'spbill_create_ip' => $this->getSpbillCreateIp(),//*
-            'time_start'       => $this->getTimeStart(),//yyyyMMddHHmmss
-            'time_expire'      => $this->getTimeExpire(),//yyyyMMddHHmmss
-            'goods_tag'        => $this->getGoodsTag(),
-            'notify_url'       => $this->getNotifyUrl(), //*
-            'trade_type'       => $this->getTradeType(), //*
-            'limit_pay'        => $this->getLimitPay(),
-            'openid'           => $this->getOpenId(),//*(trade_type=JSAPI)
-            'nonce_str'        => md5(uniqid('', true)),//*
+            'description'  => $this->getDescription(),
+            'attach'       => $this->getAttach(),
+            'out_trade_no' => $this->getOutTradeNo(),//*
+            'amount'       => [
+                'total'    => (int) $this->getAmount(),
+                'currency' => $this->getCurrency(),
+            ],
+            'payer'        => $this->getPayer(),
+            'detail'       => null,
+            'scene_info'   => null,
+            'settle_info'  => [
+                'profit_sharing' => false,
+            ],
+            'goods_tag'    => $this->getGoodsTag(),
+            'notify_url'   => $this->getNotifyUrl(), //*
         );
-        dd($this->getParameters());
-        $data = array_filter($data);
 
-        $data['sign'] = Helper::sign($data, $this->getApiKey());
+        return array_filter($data);
 
-        return $data;
     }
 
 
@@ -146,8 +161,6 @@ class CreateOrderRequest extends BaseAbstractRequest
     }
 
 
-
-
     /**
      * @return mixed
      */
@@ -212,7 +225,7 @@ class CreateOrderRequest extends BaseAbstractRequest
 
 
     /**
-     * @param mixed $deviceInfo
+     * @param  mixed  $deviceInfo
      */
     public function setDeviceInfo($deviceInfo)
     {
@@ -221,7 +234,7 @@ class CreateOrderRequest extends BaseAbstractRequest
 
 
     /**
-     * @param mixed $body
+     * @param  mixed  $body
      */
     public function setBody($body)
     {
@@ -230,30 +243,27 @@ class CreateOrderRequest extends BaseAbstractRequest
 
 
     /**
-     * @param mixed $detail
+     * @param  mixed  $detail
      */
     public function setDetail($detail)
     {
         $this->setParameter('detail', $detail);
     }
+
     public function setPayer($payer)
     {
         $this->setParameter('payer', $payer);
     }
 
 
-    /**
-     * @param mixed $detail
-     */
-    public function getPayer($payer)
+    public function getPayer()
     {
-        $this->setParameter('payer', $payer);
+        return $this->getParameter('payer');
     }
 
 
-
     /**
-     * @param mixed $attach
+     * @param  mixed  $attach
      */
     public function setAttach($attach)
     {
@@ -262,7 +272,7 @@ class CreateOrderRequest extends BaseAbstractRequest
 
 
     /**
-     * @param mixed $outTradeNo
+     * @param  mixed  $outTradeNo
      */
     public function setOutTradeNo($outTradeNo)
     {
@@ -271,7 +281,7 @@ class CreateOrderRequest extends BaseAbstractRequest
 
 
     /**
-     * @param mixed $feeType
+     * @param  mixed  $feeType
      */
     public function setFeeType($feeType)
     {
@@ -280,7 +290,7 @@ class CreateOrderRequest extends BaseAbstractRequest
 
 
     /**
-     * @param mixed $totalFee
+     * @param  mixed  $totalFee
      */
     public function setTotalFee($totalFee)
     {
@@ -289,7 +299,7 @@ class CreateOrderRequest extends BaseAbstractRequest
 
 
     /**
-     * @param mixed $spbillCreateIp
+     * @param  mixed  $spbillCreateIp
      */
     public function setSpbillCreateIp($spbillCreateIp)
     {
@@ -298,7 +308,7 @@ class CreateOrderRequest extends BaseAbstractRequest
 
 
     /**
-     * @param mixed $timeStart
+     * @param  mixed  $timeStart
      */
     public function setTimeStart($timeStart)
     {
@@ -307,7 +317,7 @@ class CreateOrderRequest extends BaseAbstractRequest
 
 
     /**
-     * @param mixed $timeExpire
+     * @param  mixed  $timeExpire
      */
     public function setTimeExpire($timeExpire)
     {
@@ -316,7 +326,7 @@ class CreateOrderRequest extends BaseAbstractRequest
 
 
     /**
-     * @param mixed $goodsTag
+     * @param  mixed  $goodsTag
      */
     public function setGoodsTag($goodsTag)
     {
@@ -331,7 +341,7 @@ class CreateOrderRequest extends BaseAbstractRequest
 
 
     /**
-     * @param mixed $tradeType
+     * @param  mixed  $tradeType
      */
     public function setTradeType($tradeType)
     {
@@ -340,7 +350,7 @@ class CreateOrderRequest extends BaseAbstractRequest
 
 
     /**
-     * @param mixed $limitPay
+     * @param  mixed  $limitPay
      */
     public function setLimitPay($limitPay)
     {
@@ -349,7 +359,7 @@ class CreateOrderRequest extends BaseAbstractRequest
 
 
     /**
-     * @param mixed $openId
+     * @param  mixed  $openId
      */
     public function setOpenId($openId)
     {
@@ -360,18 +370,41 @@ class CreateOrderRequest extends BaseAbstractRequest
     /**
      * Send the request with specified data
      *
-     * @param  mixed $data The data to send
+     * @param  mixed  $data  The data to send
      *
      * @return ResponseInterface
-     * @throws \Psr\Http\Client\Exception\NetworkException
-     * @throws \Psr\Http\Client\Exception\RequestException
+     * @throws NetworkException
+     * @throws RequestException
      */
     public function sendData($data)
     {
-        // TODO 根据类型 选择不同的接口
-        $body     = Helper::array2xml($data);
-        $response = $this->httpClient->request('POST', $this->endpoint, [], $body)->getBody();
-        $payload  = Helper::xml2array($response);
+
+
+        $headers = [
+            'Accept'       => 'application/json',
+            'Content-Type' => 'application/json',
+        ];
+
+
+        $body                     = json_encode($data);
+        $authorization            = Signer::signer(
+            $this->getMchId(),
+            $this->getAppCert(),
+            $this->getPrivateKey(),
+            $this->method,
+            $this->uri,
+            $body,
+        );
+        $headers['Authorization'] = $authorization;
+
+
+        $response = $this->httpClient->request(
+            'POST',
+            $this->endpoint.$this->uri,
+            $headers, $body);
+
+
+        $payload = json_decode($response->getBody()->getContents(),true);
 
         return $this->response = new CreateOrderResponse($this, $payload);
     }

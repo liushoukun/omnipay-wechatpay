@@ -18,6 +18,7 @@ abstract class BaseAbstractResponse extends AbstractResponse
      */
     public function isSuccessful()
     {
+        // TODO 状态码 为 200
         $data = $this->getData();
 
         return isset($data['result_code']) && $data['result_code'] == 'SUCCESS';

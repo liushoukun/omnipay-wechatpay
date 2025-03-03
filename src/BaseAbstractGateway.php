@@ -44,6 +44,30 @@ abstract class BaseAbstractGateway extends AbstractGateway
         return $this->setParameter('private_key', $value);
     }
 
+
+    /**
+     * @return mixed
+     */
+    public function getAppCertSn()
+    {
+        return $this->getParameter('app_cert_sn');
+    }
+
+
+    /**
+     * @param $value
+     *
+     * @return $this
+     */
+    public function setAppCertSn($value)
+    {
+        return $this->setParameter('app_cert_sn', $value);
+    }
+
+
+
+
+
     public function getAppCert()
     {
         return $this->getParameter('app_cert');

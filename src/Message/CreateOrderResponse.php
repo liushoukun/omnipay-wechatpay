@@ -21,6 +21,7 @@ class CreateOrderResponse extends BaseAbstractResponse
 
     public function getAppOrderData()
     {
+        // TODO 修改
         if ($this->isSuccessful()) {
             $data = [
                 'appid'     => $this->request->getAppId(),
@@ -54,6 +55,7 @@ class CreateOrderResponse extends BaseAbstractResponse
 
     public function getJsOrderData()
     {
+        // TODO 修改
         if ($this->isSuccessful()) {
             $data = [
                 'appId'     => $this->request->getAppId(),
@@ -86,6 +88,7 @@ class CreateOrderResponse extends BaseAbstractResponse
 
     public function getMwebUrl()
     {
+        // 外部 H5 发起支付
         if ($this->isSuccessful() && $this->request->getTradeType() == 'MWEB') {
             $data = $this->getData();
 
