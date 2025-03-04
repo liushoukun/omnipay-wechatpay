@@ -180,7 +180,24 @@ abstract class BaseAbstractGateway extends AbstractGateway
         return $this->getParameter('notify_url');
     }
 
+    /**
+     * @return mixed
+     */
+    public function getReturnUrl()
+    {
+        return $this->getParameter('return_url');
+    }
 
+
+    /**
+     * @param $value
+     *
+     * @return $this
+     */
+    public function setReturnUrl($value)
+    {
+        return $this->setParameter('return_url', $value);
+    }
     /**
      * @return mixed
      */

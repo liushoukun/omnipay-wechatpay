@@ -105,7 +105,8 @@ class CreateOrderResponse extends BaseAbstractResponse
         if ($this->isSuccessful() && $this->request->getTradeType() == 'WAP') {
             $data = $this->getData();
 
-            return $data['data']['h5_url'];
+            //$query['redirect_url'] = $this->request->getReturnUrl();
+            return $data['data']['h5_url'].'&redirect_url='.$this->request->getReturnUrl();
         } else {
             return null;
         }
