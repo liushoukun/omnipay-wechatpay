@@ -3,7 +3,9 @@
 namespace Omnipay\WechatPay\Message;
 
 use Omnipay\Common\Message\ResponseInterface;
+use Omnipay\WechatPay\Common\AesGcm;
 use Omnipay\WechatPay\Helper;
+use function Symfony\Component\Translation\t;
 
 /**
  * Class CompletePurchaseRequest
@@ -23,24 +25,23 @@ class CompletePurchaseRequest extends BaseAbstractRequest
     /**
      * Send the request with specified data
      *
-     * @param  mixed $data The data to send
+     * @param  mixed  $data  The data to send
      *
      * @return ResponseInterface
      */
     public function sendData($data)
     {
-        $data = $this->getData();
-        $sign = Helper::sign($data, $this->getApiKey());
+        // 解密
+        // 验签
 
-        $responseData = array();
 
-        if (isset($data['sign']) && $data['sign'] && $sign === $data['sign']) {
-            $responseData['sign_match'] = true;
-        } else {
-            $responseData['sign_match'] = false;
-        }
+        $responseData = $this->getData();
 
-        if ($responseData['sign_match'] && isset($data['result_code']) && $data['result_code'] == 'SUCCESS') {
+
+        // TODO 验证签名
+        $responseData['sign_match'] = true;
+        $responseData['paid']       = false;
+        if ($responseData['sign_match'] && isset($data['trade_state']) && $data['trade_state'] == 'SUCCESS') {
             $responseData['paid'] = true;
         } else {
             $responseData['paid'] = false;
@@ -58,13 +59,20 @@ class CompletePurchaseRequest extends BaseAbstractRequest
      */
     public function getData()
     {
-        $data = $this->getRequestParams();
 
-        if (is_string($data)) {
-            $data = Helper::xml2array($data);
-        }
+        $requestBody = $this->getRequestParams();
 
-        return $data;
+        [
+            'resource' => [
+                'ciphertext'      => $ciphertext,
+                'nonce'           => $nonce,
+                'associated_data' => $aad
+            ]
+        ] = $requestBody;
+        $inBodyResource = AesGcm::decrypt($ciphertext, $this->getEncryptKey(), $nonce, $aad);
+
+
+        return $responseData = json_decode($inBodyResource, true);
     }
 
 

@@ -117,6 +117,25 @@ abstract class BaseAbstractGateway extends AbstractGateway
 
 
 
+    /**
+     * @return mixed
+     */
+    public function getEncryptKey()
+    {
+        return $this->getParameter('encrypt_key');
+    }
+
+
+    /**
+     * @param $value
+     *
+     * @return $this
+     */
+    public function setEncryptKey($value)
+    {
+        return $this->setParameter('encrypt_key', $value);
+    }
+
 
     public function setApiKey($apiKey)
     {
