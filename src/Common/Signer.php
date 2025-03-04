@@ -37,12 +37,12 @@ class Signer
     public static function orderSigner(string $appId, string $privateKey, string $prepayId) : array
     {
 
-        $nonce     = static::nonce();
+        $nonce     = (string)static::nonce();
         $timestamp = (string) static::timestamp();
 
 
         $signature = Rsa::sign(
-            static::joinedByLineFeed($appId, $timestamp, $nonce, $prepayId)
+            static::joinedByLineFeed($appId, $timestamp, $nonce, 'prepay_id='.$prepayId)
             , static::format($privateKey, static::KEY_TYPE_PRIVATE));
 
         return [

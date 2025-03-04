@@ -19,6 +19,16 @@ class CreateOrderResponse extends BaseAbstractResponse
      */
     protected $request;
 
+    public function getMessage()
+    {
+        $data = $this->getData();
+        if ($this->isSuccessful()) {
+            return 'ok';
+        } else {
+            return $data['data']['message'] ?? '';
+        }
+    }
+
 
     public function getAppOrderData()
     {
@@ -64,21 +74,19 @@ class CreateOrderResponse extends BaseAbstractResponse
     {
 
         if ($this->isSuccessful()) {
-            $data              = [
-                'appId'   => $this->request->getAppId(),
-                'package' => 'prepay_id='.$this->getPrepayId(),
 
-            ];
             $orderSigner       = Signer::orderSigner(
                 $this->request->getAppId(),
                 $this->request->getPrivateKey(),
                 $this->getPrepayId(),
 
             );
+            $data = [];
+            $data['package']  = 'prepay_id='.$this->getPrepayId();
             $data['signType']  = 'RSA';
-            $data['paySign']   = $orderSigner['signature'];
-            $data['timeStamp'] = $orderSigner['timestamp'];
-            $data['nonceStr']  = $orderSigner['nonce'];
+            $data['paySign']   = (string)$orderSigner['signature'];
+            $data['timeStamp'] = (string)$orderSigner['timestamp'];
+            $data['nonceStr']  = (string)$orderSigner['nonce'];
         } else {
             $data = null;
         }
