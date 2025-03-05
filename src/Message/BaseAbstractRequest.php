@@ -3,6 +3,7 @@
 namespace Omnipay\WechatPay\Message;
 
 use Omnipay\Common\Message\AbstractRequest;
+use Omnipay\WechatPay\Common\Signer;
 
 /**
  * Class BaseAbstractRequest
@@ -46,15 +47,6 @@ abstract class BaseAbstractRequest extends AbstractRequest
     }
 
 
-    public function getAppCertSn()
-    {
-        return $this->getParameter('app_cert_sn');
-    }
-
-    public function setAppCertSn($appCertSn)
-    {
-        $this->setParameter('app_cert_sn', $appCertSn);
-    }
 
     /**
      * @return mixed
@@ -163,6 +155,80 @@ abstract class BaseAbstractRequest extends AbstractRequest
     public function setEncryptKey($value)
     {
         return $this->setParameter('encrypt_key', $value);
+    }
+    /**
+     * @return mixed
+     */
+    public function getChannelPublicKey()
+    {
+        return $this->getParameter('channel_public_key');
+    }
+
+
+    /**
+     * @param $value
+     *
+     * @return $this
+     */
+    public function setChannelPublicKey($value)
+    {
+        return $this->setParameter('channel_public_key', $value);
+    }
+
+
+
+    /**
+     * @return mixed
+     */
+    public function getChannelCert()
+    {
+        return $this->getParameter('channel_cert');
+    }
+
+
+    /**
+     * @param $value
+     *
+     * @return $this
+     */
+    public function setChannelCert($value)
+    {
+        return $this->setParameter('channel_cert', $value);
+    }
+
+
+    public function sendData($data)
+    {
+
+        // TODO 根据查询不同 构建不同的 数据
+        if (!empty($data)) {
+            $body = json_encode($data, JSON_THROW_ON_ERROR);
+        } else {
+            $body = '';
+        }
+        $authorization            = Signer::signer(
+            $this->getMchId(),
+            $this->getAppCert(),
+            $this->getPrivateKey(),
+            $this->method,
+            $this->uri,
+            $body,
+        );
+
+        $headers                  = [
+            'Accept'       => 'application/json',
+            'Content-Type' => 'application/json',
+        ];
+        $headers['Authorization'] = $authorization;
+        $url                      = $this->endpoint.$this->uri;
+
+        $response = $this->httpClient->request($this->method, $url, $headers, $body);
+
+
+        $contents               = json_decode($response->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
+        $payload['data']        = $contents;
+        $payload['status_code'] = $response->getStatusCode();
+        return $payload;
     }
 
 }

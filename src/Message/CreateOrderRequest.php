@@ -4,7 +4,6 @@ namespace Omnipay\WechatPay\Message;
 
 use Omnipay\Common\Message\ResponseInterface;
 use Omnipay\WechatPay\Common\Signer;
-use Omnipay\WechatPay\Helper;
 use Psr\Http\Client\Exception\NetworkException;
 use Psr\Http\Client\Exception\RequestException;
 
@@ -389,38 +388,7 @@ class CreateOrderRequest extends BaseAbstractRequest
      */
     public function sendData($data)
     {
-
-
-        $headers = [
-            'Accept'       => 'application/json',
-            'Content-Type' => 'application/json',
-        ];
-
-
-        $body                     = json_encode($data, JSON_THROW_ON_ERROR);
-        $authorization            = Signer::signer(
-            $this->getMchId(),
-            $this->getAppCert(),
-            $this->getPrivateKey(),
-            $this->method,
-            $this->uri,
-            $body,
-        );
-        $headers['Authorization'] = $authorization;
-
-
-        $response = $this->httpClient->request(
-            'POST',
-            $this->endpoint.$this->uri,
-            $headers, $body);
-
-
-        $contents = json_decode($response->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
-
-        $payload['data']        = $contents;
-        $payload['status_code'] = $response->getStatusCode();
-
-
+        $payload = parent::sendData($data);
         return $this->response = new CreateOrderResponse($this, $payload);
     }
 }

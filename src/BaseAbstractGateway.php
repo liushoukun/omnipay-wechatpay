@@ -104,6 +104,46 @@ abstract class BaseAbstractGateway extends AbstractGateway
           return $this->setParameter('wechat_public_key', $value);
     }
 
+    /**
+     * @return mixed
+     */
+    public function getChannelCert()
+    {
+        return $this->getParameter('channel_cert');
+    }
+
+
+    /**
+     * @param $value
+     *
+     * @return $this
+     */
+    public function setChannelCert($value)
+    {
+        return $this->setParameter('channel_cert', $value);
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getChannelPublicKey()
+    {
+        return $this->getParameter('channel_public_key');
+    }
+
+
+    /**
+     * @param $value
+     *
+     * @return $this
+     */
+    public function setChannelPublicKey($value)
+    {
+        return $this->setParameter('channel_public_key', $value);
+    }
+
+
+
     public function setMchId($mchId)
     {
         $this->setParameter('mch_id', $mchId);
@@ -402,5 +442,12 @@ abstract class BaseAbstractGateway extends AbstractGateway
     public function sendCoupon($parameters = array())
     {
         return $this->createRequest('\Omnipay\WechatPay\Message\CouponTransfersRequest', $parameters);
+    }
+
+
+    public function certificates($parameters = [])
+    {
+        return $this->createRequest('\Omnipay\WechatPay\Message\CertificatesRequest', $parameters);
+
     }
 }

@@ -2,26 +2,37 @@
 
 namespace Omnipay\WechatPay\Common;
 
+use SensitiveParameter;
 use UnexpectedValueException;
 
 class Signer
 {
-    const int KEY_TYPE_PUBLIC  = 1;
-    const int KEY_TYPE_PRIVATE = 2;
+    const string KEY_TYPE_PUBLIC  = 'public';
+    const string KEY_TYPE_PRIVATE = 'private';
 
 
-    public static function getCertSn($cert, $parsed = false) : string
+    public static function getCertPublicKey(string $cert)
     {
-        if ($parsed) {
-            $ssl = $cert;
-        } else {
-            if (is_file($cert)) {
-                $cert = file_get_contents($cert);
-            }
-            $ssl = openssl_x509_parse($cert);
+
+        if (is_file($cert)) {
+            $cert = file_get_contents($cert);
         }
-        if (str_starts_with($ssl['serialNumber'], '0x')) {
-            return substr($ssl['serialNumber'], 2);
+        $publicKey = Rsa::from($cert, Rsa::KEY_TYPE_PUBLIC);
+
+        return openssl_pkey_get_details($publicKey)['key'];
+    }
+
+
+    public static function getCertSn(string $cert) : string
+    {
+
+        if (is_file($cert)) {
+            $cert = file_get_contents($cert);
+        }
+        $ssl = openssl_x509_parse($cert);
+
+        if ($ssl['serialNumberHex']) {
+            return $ssl['serialNumberHex'];
         }
         throw new UnexpectedValueException('please checking your $cert whether or nor correct.');
 
@@ -34,10 +45,14 @@ class Signer
      *
      * @return array{nonce:string,timestamp:string,signature:string}
      */
-    public static function orderSigner(string $appId, string $privateKey, string $prepayId) : array
-    {
+    public static function orderSigner(
+        string $appId,
+        #[SensitiveParameter]
+        string $privateKey,
+        string $prepayId
+    ) : array {
 
-        $nonce     = (string)static::nonce();
+        $nonce     = (string) static::nonce();
         $timestamp = (string) static::timestamp();
 
 
@@ -50,6 +65,17 @@ class Signer
             'timestamp' => $timestamp,
             'signature' => $signature
         ];
+    }
+
+    public static function verify(
+        string $timestamp,
+        string $nonce,
+        string $body,
+        string $signature,
+        $publicKey
+    ) : bool {
+        $message = static::joinedByLineFeed($timestamp, $nonce, $body);
+        return Rsa::verify($message, $signature, static::format($publicKey, static::KEY_TYPE_PUBLIC));
     }
 
     public static function signer(

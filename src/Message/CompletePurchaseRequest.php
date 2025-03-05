@@ -4,6 +4,7 @@ namespace Omnipay\WechatPay\Message;
 
 use Omnipay\Common\Message\ResponseInterface;
 use Omnipay\WechatPay\Common\AesGcm;
+use Omnipay\WechatPay\Common\Signer;
 use Omnipay\WechatPay\Helper;
 use function Symfony\Component\Translation\t;
 
@@ -31,18 +32,14 @@ class CompletePurchaseRequest extends BaseAbstractRequest
      */
     public function sendData($data)
     {
-        // 解密
-        // 验签
 
-
-        $responseData = $this->getData();
-
-
-        // TODO 验证签名
-        $responseData['sign_match'] = true;
+        $responseData               = [];
+        $responseData['data']       = $data;
         $responseData['paid']       = false;
-        if ($responseData['sign_match'] && isset($data['trade_state']) && $data['trade_state'] == 'SUCCESS') {
-            $responseData['paid'] = true;
+        $responseData['sign_match'] = false;
+        if (isset($data['trade_state']) && $data['trade_state'] == 'SUCCESS') {
+            $responseData['paid']       = true;
+            $responseData['sign_match'] = true;
         } else {
             $responseData['paid'] = false;
         }
@@ -59,8 +56,32 @@ class CompletePurchaseRequest extends BaseAbstractRequest
      */
     public function getData()
     {
-
         $requestBody = $this->getRequestParams();
+        // 验签
+
+        $serial = $requestBody['headers']['wechatpay-serial'];
+
+        if (str_starts_with($serial, 'PUB_KEY')) {
+            // 微信公钥
+            $publicKey = $this->getChannelPublicKey();
+        } else {
+            // 平台证书
+            $publicKey = Signer::getCertPublicKey($this->getChannelCert());
+        }
+
+
+        $verifyState = Signer::verify(
+            $requestBody['headers']['wechatpay-timestamp'],
+            $requestBody['headers']['wechatpay-nonce'],
+            $requestBody['body'],
+            $requestBody['headers']['wechatpay-signature'],
+            $publicKey
+        );
+        if($verifyState === false){
+            return  null;
+        }
+
+
 
         [
             'resource' => [
@@ -68,8 +89,12 @@ class CompletePurchaseRequest extends BaseAbstractRequest
                 'nonce'           => $nonce,
                 'associated_data' => $aad
             ]
-        ] = $requestBody;
+        ] = $requestBody['data'] ?? [];
+
+        // 解密
+
         $inBodyResource = AesGcm::decrypt($ciphertext, $this->getEncryptKey(), $nonce, $aad);
+
 
 
         return $responseData = json_decode($inBodyResource, true);
